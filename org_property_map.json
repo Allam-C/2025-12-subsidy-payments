@@ -1,0 +1,43 @@
+{
+    "organizations": [
+        {
+            "id": "4e8caee8-c99e-406c-864c-c8a5ba3e4a03",
+            "name": "Elmington Property Management",
+            "short_name": "epm",
+            "properties": [
+                {
+                    "id": "8343d9a1-1103-4fc6-8a7b-ad17d722667a",
+                    "name": "Fortress Training Affordable",
+                    "short_code": "TSTAFF",
+                    "alias": "Affinity Gardens"
+                }
+            ]
+        },
+        {
+            "id": "a6b8f5e7-13b6-441d-b558-a11cd3cccd66",
+            "name": "Olsen Securities Corp",
+            "short_name": "olsen",
+            "properties": [
+                {
+                    "id": "f6cc007a-7b0a-4d54-9c1b-b07c573a0a68",
+                    "name": "Blue Spruce",
+                    "short_code": "050",
+                    "alias": "BLUE SPRUCE APTS."
+                },
+                {
+                    "id": "4135882a-e886-42d8-b774-d05201667eb7",
+                    "name": "Autum Trace",
+                    "short_code": "020",
+                    "alias": "AUTUMN TRACE APTS"
+                },
+                {
+                    "id": "d3f3e2b3-4f4f-4f7a-9f4a-5e3c6e8b9c1d",
+                    "name": "Bloomfield",
+                    "short_code": "040",
+                    "alias": "BLOOMFIELD APARTMENTS"
+                }
+
+            ]
+        }
+    ]
+}

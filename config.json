@@ -1,0 +1,11 @@
+{
+    "logs": {
+        "file_path": "C:/Users/allam/OneDrive - Elmington Capital Group/Fortress/IT/2025-11 - RD Subsidy Payments/logs",
+        "file_name": "pdf_ingest.log"
+        },
+    "pipelines": {
+        "input": "C:/Users/allam/Elmington Dropbox/Fortress Integrations/RD Payments",
+        "staging": "C:/Users/allam/OneDrive - Elmington Capital Group/Fortress/IT/2025-11 - RD Subsidy Payments/pipeline/staging",
+        "output": "C:/Users/allam/OneDrive - Elmington Capital Group/Fortress/IT/2025-11 - RD Subsidy Payments/pipeline/output"
+    }
+}

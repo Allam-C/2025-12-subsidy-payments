@@ -1,0 +1,21 @@
+{
+    "files": [
+        {
+            "id": "rd_project_worksheet",
+            "description": "Project worksheet for rural development properties.",
+            "tables": [
+                {
+                    "id": "rd_subsidy_payments",
+                    "description": "Records of subsidy payments",
+                    "columns": [
+                        { "name": "Property", "output_name": "Property", "source": "parameter", "type": "str"},
+                        { "name": "DueFor", "output_name": "DueFor", "source": "parameter", "type": "str"},
+                        { "name": "unit", "output_name": "Unit Number", "source": "input", "type": "str" },
+                        { "name": "leased_to", "output_name": "Head of Household", "source": "input", "type": "str" },
+                        { "name": "due_borrower", "output_name": "Amount", "source": "input", "type": "float" }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,54 @@
+{
+    "files": [
+        {
+            "id": "rd_project_worksheet",
+            "description": "Monthly subsidy payment records for rural development properties.",
+            "file_type": "fixed_width",
+            "encoding": "utf-8",
+            "line_terminator": "\n",
+            "property": {
+                "row": 4,
+                "previous_col": "Name:",
+                "post_col": "Managemnt"
+            },
+            "validation": {
+                "keyword": "PRJ2000",
+                "keyword_row": 1,
+                "date": {
+                    "row": 3,
+                    "format": "%m/%d/%Y"
+                }
+            },
+            "tables": [
+                {
+                    "id": "rd_subsidy_payments",
+                    "description": "Records of subsidy payments",
+                    "header_keywords": ["Apt", "Nbr", "Initial", "Exprtn"],
+                    "columns": [
+                        { "name": "unit", "type": "str" },
+                        { "name": "type_size", "type": "str" },
+                        { "name": "amount", "type": "int" },
+                        { "name": "initial_date", "type": "date" },
+                        { "name": "expiration_date", "type": "date", "optional": true },
+                        { "name": "leased_to", "type": "str" , "dynamic_length_string": true },
+                        { "name": "basic_rent", "type": "float" },
+                        { "name": "note_rent", "type": "float" },
+                        { "name": "hud_rent", "type": "float" },    
+                        { "name": "subsidy_code", "type": "int", "optional": true },
+                        { "name": "income_percentage", "type": "str" },
+                        { "name": "income_type", "type": "str", "optional": true },
+                        { "name": "annual_income", "type": "float" },
+                        { "name": "gtc", "type": "float" },
+                        { "name": "utility_allowance", "type": "float" },
+                        { "name": "ntc", "type": "str" },
+                        { "name": "due_tenant", "type": "float" },
+                        { "name": "due_borrower", "type": "float" },
+                        { "name": "surcharge", "type": "float" },
+                        { "name": "action_code", "type": "str" , "optional": true },
+                        { "name": "track_account", "type": "str" , "optional": true  }
+                    ]
+                }
+            ]
+        }
+    ]
+}
