@@ -3,7 +3,6 @@ import pandas as pd
 import pdfplumber
 import json
 import argparse
-from datetime import datetime
 from pathlib import Path
 from logger_setup import get_logger
 from schema_utils import get_table_schema, get_column_names, get_file_validation, get_property_name_configuration
@@ -12,10 +11,9 @@ from org_property_lookup import get_org_by_short_code, get_property_by_alias
 
     # pending
     # enhance logging with more details
-    # move pdf files to processed folder after successful processing
+    # modify input dir based on new Dropbox folder structure
     # handle exceptions more gracefully
     # unit tests for pdfreader functions
-    # 
 
 CONFIG_FILE = Path(__file__).parent / "config.json"
 with open(CONFIG_FILE, "r") as f:
@@ -24,7 +22,8 @@ LOG_PATH = config.get("logs", {}).get("file_path")
 LOG_FILE = config.get("logs", {}).get("file_name")
 DEFAULT_INPUT_SCHEMA = Path(__file__).parent / "schemas/input.json"
 DEFAULT_OUTPUT_SCHEMA = Path(__file__).parent / "schemas/output.json"
-INPUT_DIR = config.get("pipelines", {}).get("input",{})
+INPUT_BASE_DIR = config.get("pipelines", {}).get("input",{}).get("base")
+INPUT_TEMPLATE = config.get("pipelines", {}).get("input",{}).get("template")
 OUTPUT_DIR = config.get("pipelines", {}).get("staging",{})
 ORGS_DATA_FILE = Path(__file__).parent / "org_property_map.json"
 with open(ORGS_DATA_FILE, "r") as f:
@@ -32,16 +31,15 @@ with open(ORGS_DATA_FILE, "r") as f:
 
 logger = get_logger(log_path=LOG_PATH, base_log_name=LOG_FILE, name="pdfreader_logger")
 
-def find_pdf_list(base_path,org_key,prop_key=None):
-    base_path_dir = Path(base_path)
-    pdf_files = []
-    for org_dir in base_path_dir.iterdir():
-        if org_dir.is_dir() and org_key.lower() in org_dir.name.lower():
-            for prop_dir in org_dir.iterdir():
-                if prop_dir.is_dir() and (prop_key is None or prop_key.lower() in prop_dir.name.lower()):
-                    for file in prop_dir.rglob("*.pdf"):
-                        pdf_files.append(file)
+def find_pdf_list(target_path):
+    target_path_dir = Path(target_path)
+    if not target_path_dir.exists():
+        raise FileNotFoundError(f"The specified path does not exist: {target_path}")
+    if not target_path_dir.is_dir():
+        raise NotADirectoryError(f"The specified path is not a directory: {target_path}")
+    pdf_files = list(target_path_dir.rglob("*.pdf"))
     return pdf_files
+
 
 def get_property_alias(lines, property_info):
     row_index = property_info.get("row")
@@ -50,10 +48,8 @@ def get_property_alias(lines, property_info):
     line = lines[row_index-1]
     start_index = line.find(prev_marker)
     end_index = line.find(next_marker)
-
     if start_index == -1 or end_index == -1:
         raise ValueError("Could not find property name markers in the specified line.")
-    
     raw_segment = line[start_index + len(prev_marker):end_index].split()
     return " ".join(raw_segment)
 
@@ -119,30 +115,31 @@ def generate_output_df(df_input, schema, file_id, table_id, params):
 def main():
     parser = argparse.ArgumentParser(description="Validate Initial Arguments.")
     parser.add_argument("-o","--org", required=True,help="Organization Short Name")
-    parser.add_argument("-p","--property", required=False,help="Property Short Code")
     parser.add_argument("-t","--timeframe",required=True,help="Period in format YYYYMM")
     args = parser.parse_args()
-    organization, property, timeframe = args.org, args.property, args.timeframe
+    organization, timeframe = args.org, args.timeframe
+    INPUT_DIR = INPUT_TEMPLATE.format(base=INPUT_BASE_DIR, orgId=organization, function="affordable-rd")
 
     logger.info("********PDF processing started********")
     logger.info("Input Parameters:")
-    logger.info(f"Organization: {organization}, Property: {property}, Timeframe: {timeframe}")
+    logger.info(f"Organization: {organization}, Timeframe: {timeframe}")
     logger.info(f"Input Directory: {INPUT_DIR}")
     logger.info(f"Output Directory: {OUTPUT_DIR}")
     with open(DEFAULT_INPUT_SCHEMA, "r") as f:
         input_schema_data = json.load(f)
-    logger.info(f"Searching for pdf files in {INPUT_DIR}/*{organization}")
-    pdf_files = find_pdf_list(INPUT_DIR, organization, property)
+    logger.info(f"Searching for pdf files in {INPUT_DIR}")
+    pdf_files = find_pdf_list(INPUT_DIR)
     if not pdf_files:
         logger.error("No PDF files found matching the criteria.")
         return
     logger.info(f"Found {len(pdf_files)} PDF files to process.")
+    file_count = len(pdf_files)
     error_count = 0
     ok_count = 0
     for i,pdf_file in enumerate(pdf_files):
         logger.info(f"Processing file {i+1}: {pdf_file}")
         # Step 1: Read and parse input PDF
-        logger.info(f"Step 1: Reading and parsing input file")
+        logger.info(f"Reading and parsing input file")
         try:
             input_return = parse_input_pdf(pdf_file, timeframe, input_schema_data, "rd_project_worksheet","rd_subsidy_payments")
             df_input = input_return["dataframe"]
@@ -153,7 +150,7 @@ def main():
 
         # Step 2: Get property alias
         property_alias = input_return["property_alias"]
-        logger.info(f"Step 2: Extracting information for property {property_alias}")
+        logger.info(f"Extracting information for property {property_alias}")
         try:
             property_data = resolve_property_data(orgs_data, organization, property_alias)
             property = property_data["property"]["name"]
@@ -166,7 +163,7 @@ def main():
             continue
 
         # Step 3: Generate output CS
-        logger.info(f"Step 3: Generating output for property {property}")
+        logger.info(f"Generating output for property {property}")
         params = {
             "Property" : property_short_code,
             "DueFor": timeframe
@@ -177,16 +174,22 @@ def main():
         try:
             output_file_name = f"{organization_id} {property_id} {property_short_code} {timeframe} SCHEDULE.csv"
             logger.info(f"Generating output file {output_file_name}")
-            df_output = generate_output_df(df_input, output_schema_data, "rd_project_worksheet", "rd_subsidy_payments", params)
+            df_output = generate_output_df(df_input, output_schema_data, "rd_project_worksheet", "subsidy_base", params)
             df_output.to_csv(os.path.join(OUTPUT_DIR, output_file_name), index=False)
         except Exception as e:
             error_count += 1
             logger.error(f"Error generating output for file {pdf_file}: {e}")
             continue
         ok_count += 1
-        logger.info(f"*** File processing summary ***")
-        logger.info(f"{ok_count} OK files processed: ")
-        logger.info(f"{error_count} Error Files encountered: ")
+
+        # Step 4: Rename and move processed file
+        logger.info(f"Moving processed file to processed folder")
+        processed_dir = Path(pdf_file).parent.parent / f"processed/{timeframe}"
+        processed_dir.mkdir(parents=True, exist_ok=True)
+        processed_file_path = processed_dir / f"processed_{property_short_code}_{timeframe}.pdf"
+        os.rename(pdf_file, processed_file_path)
+    logger.info(f"*** File processing summary ***")
+    logger.info(f"Total: {file_count:03d}; OK: {ok_count:03d}; Errors: {error_count:03d}")
     logger.info("********PDF processing completed********")
 
 if __name__ == "__main__":

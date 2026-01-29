@@ -4,7 +4,11 @@
         "file_name": "pdf_ingest.log"
         },
     "pipelines": {
-        "input": "C:/Users/allam/Elmington Dropbox/Fortress Integrations/RD Payments",
+        "input1": "C:/Users/allam/Elmington Dropbox/Fortress Integrations/RD Payments",
+        "input": {
+            "base": "C:/Users/allam/Elmington Dropbox/Fortress Integrations/OrgFiles/Inbound",
+            "template": "{base}/{orgId}/{function}/input"
+        },
         "staging": "C:/Users/allam/OneDrive - Elmington Capital Group/Fortress/IT/2025-11 - RD Subsidy Payments/pipeline/staging",
         "output": "C:/Users/allam/OneDrive - Elmington Capital Group/Fortress/IT/2025-11 - RD Subsidy Payments/pipeline/output"
     }

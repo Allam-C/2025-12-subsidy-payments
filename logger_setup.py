@@ -16,7 +16,7 @@ def get_logger(log_path, base_log_name, name="gnr_logger"):
         interval=1,
         backupCount=30  # keep last 30 days
     )
-    formatter = logging.Formatter('[%(asctime)s] - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('[%(asctime)s] - %(levelname)s: %(message)s')
     file_handler.setFormatter(formatter)
 
     console_handler = logging.StreamHandler()

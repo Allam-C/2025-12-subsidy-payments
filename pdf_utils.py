@@ -56,6 +56,9 @@ def validate_file(lines, validation_rules):
     return keyword in line
 
 def validate_date(lines, validation_rules, date_param):
+    """
+    Validates that the date in the specified row matches the expected date.
+    """
     date_rule = validation_rules.get("date")
     if not date_rule:
         return False  # No date rule provided
@@ -67,6 +70,9 @@ def validate_date(lines, validation_rules, date_param):
     return dates_match(date_param, date_str)
 
 def parse_line(line, schema):
+    """
+    Parses a line of text into a list of values based on the provided schema.
+    """
     raw_cells = re.split(r"\s+", line.strip())
     expected_cols = schema["columns"]
     parsed = []
