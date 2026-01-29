@@ -1,6 +1,19 @@
 {
     "organizations": [
         {
+            "id": "81ceaa6b-d41f-4391-b881-b210c358acf9",
+            "name": "Fulson Housing Group",
+            "short_name": "fulson",
+            "properties": [
+                {
+                    "id": "9a6abbbe-61d8-4d14-95d1-2ce40377bf91",
+                    "name": "Alexandra Pointe",
+                    "short_code": "AXP-FAM",
+                    "alias": "ALEXANDRA POINTE"
+                }
+            ]
+        },
+        {
             "id": "4e8caee8-c99e-406c-864c-c8a5ba3e4a03",
             "name": "Elmington Property Management",
             "short_name": "epm",

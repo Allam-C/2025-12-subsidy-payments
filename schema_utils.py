@@ -20,6 +20,15 @@ def get_table_schema(schema_data, file_id, table_id):
             raise ValueError(f"Table with id {table_id} not found in schema.")
     raise ValueError(f"File with id {file_id} not found in schema.")
 
+def get_file_schema(schema_data, file_id):
+    """
+    Retrieves the schema for a specific file from the schema data.
+    """
+    for file in schema_data.get("files", []):
+        if file["id"] == file_id:
+            return file
+    raise ValueError(f"File with id {file_id} not found in schema.")
+
 def get_file_validation(schema_data, file_id):
     """
     Retrieves the validation rules for a specific file from the schema data.

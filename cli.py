@@ -5,13 +5,13 @@ import json
 import argparse
 from pathlib import Path
 from logger_setup import get_logger
-from schema_utils import get_table_schema, get_column_names, get_file_validation, get_property_name_configuration
+from schema_utils import get_table_schema, get_column_names, get_file_validation, get_property_name_configuration, get_file_schema
 from pdf_utils import find_table_header_index, find_table_end_index, extract_table_lines, validate_file, parse_line, validate_date
 from org_property_lookup import get_org_by_short_code, get_property_by_alias
+import importlib
 
     # pending
     # enhance logging with more details
-    # modify input dir based on new Dropbox folder structure
     # handle exceptions more gracefully
     # unit tests for pdfreader functions
 
@@ -171,15 +171,29 @@ def main():
         with open(DEFAULT_OUTPUT_SCHEMA, "r") as f:
             output_schema_data = json.load(f)
 
-        try:
-            output_file_name = f"{organization_id} {property_id} {property_short_code} {timeframe} SCHEDULE.csv"
-            logger.info(f"Generating output file {output_file_name}")
-            df_output = generate_output_df(df_input, output_schema_data, "rd_project_worksheet", "subsidy_base", params)
-            df_output.to_csv(os.path.join(OUTPUT_DIR, output_file_name), index=False)
-        except Exception as e:
-            error_count += 1
-            logger.error(f"Error generating output for file {pdf_file}: {e}")
-            continue
+        file_config = get_file_schema(output_schema_data, "rd_project_worksheet")
+        module_name = file_config.get("module")
+        logger.info(f"Loading transformation module: {module_name}")
+        module = importlib.import_module(module_name)
+        TRANSFORMATIONS_MAP = module.TRANSFORMATIONS_MAP
+        tables = file_config.get("tables", [])
+        for table in tables:
+            table_id = table.get("id")
+            output_suffix = table.get("output_suffix")  
+            try:
+                transform_fn = TRANSFORMATIONS_MAP.get(table.get("transformation","identity"))
+                df_stage = transform_fn(df_input.copy())
+                if df_stage.empty:
+                    logger.info(f"No data to generate output for table {table_id}")
+                    continue
+                output_file_name = f"{organization_id} {property_id} {property_short_code} {timeframe} {output_suffix}.csv"
+                logger.info(f"Generating output file {output_file_name}")
+                df_output = generate_output_df(df_stage, output_schema_data, "rd_project_worksheet", table_id, params)
+                df_output.to_csv(os.path.join(OUTPUT_DIR, output_file_name), index=False)
+            except Exception as e:
+                error_count += 1
+                logger.error(f"Error generating {output_suffix} output for file {pdf_file}: {e}")
+                continue
         ok_count += 1
 
         # Step 4: Rename and move processed file

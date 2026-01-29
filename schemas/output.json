@@ -3,10 +3,13 @@
         {
             "id": "rd_project_worksheet",
             "description": "Project worksheet for rural development properties.",
+            "module": "programs.rd.transformations",
             "tables": [
                 {
                     "id": "subsidy_base",
+                    "output_suffix": "SCHEDULE",
                     "description": "Records of base subsidy payments",
+                    "transformation": "identity",
                     "columns": [
                         { "name": "Property", "output_name": "Property", "source": "parameter", "type": "str"},
                         { "name": "DueFor", "output_name": "DueFor", "source": "parameter", "type": "str"},
@@ -17,7 +20,9 @@
                 },
                 {
                     "id": "subsidy_adjustments",
+                    "output_suffix": "ADJUSTMENTS",
                     "description": "Records of adjustments to subsidy payments",
+                    "transformation": "apply_surcharge_logic",
                     "columns": [
                         { "name": "Property", "output_name": "Property", "source": "parameter", "type": "str"},
                         { "name": "DueFor", "output_name": "DueFor", "source": "parameter", "type": "str"},
